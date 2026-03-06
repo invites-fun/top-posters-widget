@@ -29,7 +29,10 @@ class UpdateTopPostersOnSettingsChange
 
     public function handle(Saved $event)
     {
-        if (isset($event->settings['afrux-top-posters-widget.excludeGroups'])) {
+        if (
+            isset($event->settings['afrux-top-posters-widget.excludeGroups']) ||
+            isset($event->settings['afrux-top-posters-widget.excludePrivatePosts'])
+        ) {
             $this->queue->push(new UpdateTopPostersJob());
         }
     }

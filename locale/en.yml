@@ -2,6 +2,7 @@ afrux-top-posters-widget:
   admin:
     settings:
       info: Users of the selected groups will be excluded from the widget results.
+      exclude_private: Exclude posts made in private discussions
   forum:
     widget:
       title: Top Posters this Month

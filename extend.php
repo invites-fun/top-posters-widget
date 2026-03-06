@@ -45,7 +45,8 @@ return [
         ->addGambit(Query\TopPosterGambitFilter::class),
 
     (new Extend\Settings())
-        ->default('afrux-top-posters-widget.excludeGroups', '[]'),
+        ->default('afrux-top-posters-widget.excludeGroups', '[]')
+        ->default('afrux-top-posters-widget.excludePrivatePosts', true),
 
     (new Extend\Event())
         ->listen(Saved::class, Listener\UpdateTopPostersOnSettingsChange::class),

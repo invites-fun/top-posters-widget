@@ -37,6 +37,7 @@ class TopPostersCalculator
     public function calculate()
     {
         $excludeGroups = array_map('intval', json_decode($this->settings->get('afrux-top-posters-widget.excludeGroups', '[]'), true));
+        $excludePrivate = (bool) $this->settings->get('afrux-top-posters-widget.excludePrivatePosts', true);
 
         $startOfMonth = Carbon::now()->startOfMonth();
         $currentMonthKey = Carbon::now()->format('Y-m');
@@ -45,6 +46,15 @@ class TopPostersCalculator
             ->selectRaw('user_id, count(id) as count')
             ->where('created_at', '>=', $startOfMonth)
             ->whereNull('hidden_at')
+            ->when($excludePrivate, function ($query) {
+                if ($query->getConnection()->getSchemaBuilder()->hasTable('recipients')) {
+                    $query->whereNotIn('discussion_id', function ($subQuery) {
+                        $subQuery->select('discussion_id')
+                            ->from('recipients')
+                            ->whereNull('removed_at');
+                    });
+                }
+            })
             ->when(!empty($excludeGroups), function ($query) use ($excludeGroups) {
                 $query->whereNotIn('user_id', function ($subQuery) use ($excludeGroups) {
                     $subQuery->select('user_id')
