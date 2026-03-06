@@ -17,7 +17,7 @@ use Flarum\Extend;
 use Flarum\Settings\Event\Saved;
 use Flarum\User\Filter\UserFilterer;
 use Flarum\User\Search\UserSearcher;
-use Flarum\User\User;
+use Illuminate\Console\Scheduling\Event;
 
 return [
     (new Extend\Frontend('forum'))
@@ -48,5 +48,11 @@ return [
         ->default('afrux-top-posters-widget.excludeGroups', '[]'),
 
     (new Extend\Event())
-        ->listen(Saved::class, Listener\ClearTopPosterCacheOnSettingsChange::class),
+        ->listen(Saved::class, Listener\UpdateTopPostersOnSettingsChange::class),
+
+    (new Extend\Console())
+        ->command(Console\CalculateTopPostersCommand::class)
+        ->schedule('afrux:top-posters:calculate', function (Event $event) {
+            $event->daily();
+        }),
 ];

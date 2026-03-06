@@ -11,70 +11,38 @@
 
 namespace Afrux\TopPosters;
 
-use Afrux\ForumWidgets\SafeCacheRepositoryAdapter;
 use Carbon\Carbon;
-use Flarum\Post\CommentPost;
-use Flarum\Settings\SettingsRepositoryInterface;
-use Illuminate\Contracts\Cache\Repository as IlluminateCache;
+use Illuminate\Contracts\Cache\Repository as Cache;
 
 class UserRepository
 {
-    static $cacheKey = 'afrux-top-posters-widget.top_poster_counts';
-
     /**
-     * @var SafeCacheRepositoryAdapter
+     * @var Cache
      */
-    private $cache;
+    protected $cache;
 
-    /**
-     * @var SettingsRepositoryInterface
-     */
-    protected $settings;
-
-    /**
-     * @var IlluminateCache
-     */
-    protected $illuminateCache;
-
-    public function __construct(SafeCacheRepositoryAdapter $cache, SettingsRepositoryInterface $settings, IlluminateCache $illuminateCache)
+    public function __construct(Cache $cache)
     {
         $this->cache = $cache;
-        $this->settings = $settings;
-        $this->illuminateCache = $illuminateCache;
     }
 
     public function getTopPosters(): array
     {
-        return $this->cache->remember(self::$cacheKey, 2400, function (): array {
-            $excludeGroups = $this->getexcludeGroups();
+        return $this->cache->rememberForever('afrux-top-posters-widget.top_poster_counts', function () {
+            $currentMonthKey = Carbon::now()->format('Y-m');
 
-            return CommentPost::query()
-                ->selectRaw('user_id, count(id) as count')
-                ->where('created_at', '>', Carbon::now()->subMonth())
-                ->whereNotIn('user_id', function ($query) use ($excludeGroups) {
-                    $query->select('user_id')
-                        ->from('group_user')
-                        ->whereIn('group_id', $excludeGroups);
-                })
-                ->groupBy('user_id')
-                ->orderBy('count', 'desc')
+            $records = TopPosterHistory::query()
+                ->where('date_month', $currentMonthKey)
+                ->orderBy('post_count', 'desc')
                 ->limit(5)
-                ->get()
-                ->sortByDesc('count')
-                ->mapWithKeys(function (CommentPost $post) {
-                    return [$post->user_id => (int) $post->count];
-                })
-                ->toArray();
+                ->get();
+
+            $counts = [];
+            foreach ($records as $record) {
+                $counts[$record->user_id] = (int) $record->post_count;
+            }
+
+            return $counts;
         }) ?: [];
-    }
-
-    protected function getexcludeGroups(): array
-    {
-        return array_map('intval', json_decode($this->settings->get('afrux-top-posters-widget.excludeGroups'), true));
-    }
-
-    public function clearTopPosterCache(): bool
-    {
-        return $this->illuminateCache->forget(self::$cacheKey);
     }
 }

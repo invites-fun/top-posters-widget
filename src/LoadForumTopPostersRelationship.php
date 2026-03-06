@@ -11,7 +11,6 @@
 
 namespace Afrux\TopPosters;
 
-use Afrux\ForumWidgets\SafeCacheRepositoryAdapter;
 use Flarum\Api\Controller\ShowForumController;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\Http\RequestUtil;
@@ -26,20 +25,14 @@ class LoadForumTopPostersRelationship
     protected $settings;
 
     /**
-     * @var SafeCacheRepositoryAdapter
-     */
-    private $cache;
-
-    /**
      *
      * @var UserRepository
      */
     protected $repository;
 
-    public function __construct(SettingsRepositoryInterface $settings, SafeCacheRepositoryAdapter $cache, UserRepository $repository)
+    public function __construct(SettingsRepositoryInterface $settings, UserRepository $repository)
     {
         $this->settings = $settings;
-        $this->cache = $cache;
         $this->repository = $repository;
     }
 
@@ -55,11 +48,14 @@ class LoadForumTopPostersRelationship
         $actor = RequestUtil::getActor($request);
         $counts = $this->repository->getTopPosters();
 
-        $data['topPosters'] = $this->cache->remember('afrux-top-posters-widget.top_poster_users', 2400, function () use ($actor, $counts) {
-            return User::query()
-                ->whereVisibleTo($actor)
-                ->whereIn('id', array_keys($counts))
-                ->get();
-        }) ?: [];
+        if (empty($counts)) {
+            $data['topPosters'] = [];
+            return;
+        }
+
+        $data['topPosters'] = User::query()
+            ->whereVisibleTo($actor)
+            ->whereIn('id', array_keys($counts))
+            ->get();
     }
 }
