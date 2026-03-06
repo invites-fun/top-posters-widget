@@ -29,10 +29,6 @@ class AddTopPostersToApi
     {
         $data = $this->repository->getTopPosters();
 
-        foreach ($data as $id => $count) {
-            $data[$id] = pretty_number_format($count);
-        }
-
         return [
             'afrux-top-posters-widget.topPosterCounts' => $data,
         ];

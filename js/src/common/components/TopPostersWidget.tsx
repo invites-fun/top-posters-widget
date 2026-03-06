@@ -9,7 +9,7 @@ import Link from 'flarum/common/components/Link';
 import extractText from 'flarum/common/utils/extractText';
 
 export default class TopPostersWidget extends Widget<WidgetAttrs> {
-  private monthlyCounts!: any;
+  private monthlyCounts!: Record<string, number>;
   private loadWithInitialResponse!: boolean;
 
   oninit(vnode: Mithril.Vnode): void {
@@ -51,19 +51,28 @@ export default class TopPostersWidget extends Widget<WidgetAttrs> {
       return <LoadingIndicator />;
     }
 
-    const users = this.attrs.state.users.sort((a: User, b: User) => this.monthlyCounts[b.id()!] - this.monthlyCounts[a.id()!]);
+    const users = this.attrs.state.users.slice().sort((a: User, b: User) => {
+      const bCount = this.monthlyCounts[b.id()!] || 0;
+      const aCount = this.monthlyCounts[a.id()!] || 0;
+      return bCount - aCount;
+    });
+
+    const formatter = new Intl.NumberFormat(document.documentElement.lang || 'en', {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    } as any);
 
     return (
       <div className="Afrux-TopPostersWidget-users">
         {users.map((user: User) => (
           <Link href={app.route('user', { username: user.slug() })} className="Afrux-TopPostersWidget-users-item">
             <div className="Afrux-TopPostersWidget-users-item-avatar">{avatar(user)}</div>
-              <div className="Afrux-TopPostersWidget-users-item-content">
-                <div className="Afrux-TopPostersWidget-users-item-name">{user.displayName()}</div>
-                <div className="Afrux-TopPostersWidget-users-item-value">
-                  {icon('fas fa-comment-dots')} {this.monthlyCounts[user.id()!]}
-                </div>
+            <div className="Afrux-TopPostersWidget-users-item-content">
+              <div className="Afrux-TopPostersWidget-users-item-name">{user.displayName()}</div>
+              <div className="Afrux-TopPostersWidget-users-item-value">
+                {icon('fas fa-comment-dots')} {formatter.format(this.monthlyCounts[user.id()!] || 0)}
               </div>
+            </div>
           </Link>
         ))}
       </div>
