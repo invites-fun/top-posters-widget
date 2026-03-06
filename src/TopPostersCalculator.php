@@ -38,9 +38,10 @@ class TopPostersCalculator
     {
         $excludeGroups = array_map('intval', json_decode($this->settings->get('afrux-top-posters-widget.excludeGroups', '[]'), true));
         $excludePrivate = (bool) $this->settings->get('afrux-top-posters-widget.excludePrivatePosts', true);
+        $timezone = $this->settings->get('afrux-top-posters-widget.timezone', 'UTC');
 
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $currentMonthKey = Carbon::now()->format('Y-m');
+        $startOfMonth = Carbon::now($timezone)->startOfMonth();
+        $currentMonthKey = Carbon::now($timezone)->format('Y-m');
 
         $counts = CommentPost::query()
             ->selectRaw('user_id, count(id) as count')

@@ -15,6 +15,7 @@ use Flarum\Api\Serializer as FlarumSerializer;
 use Flarum\Api\Controller\ShowForumController;
 use Flarum\Extend;
 use Flarum\Settings\Event\Saved;
+use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\User\Filter\UserFilterer;
 use Flarum\User\Search\UserSearcher;
 use Illuminate\Console\Scheduling\Event;
@@ -46,14 +47,20 @@ return [
 
     (new Extend\Settings())
         ->default('afrux-top-posters-widget.excludeGroups', '[]')
-        ->default('afrux-top-posters-widget.excludePrivatePosts', true),
+        ->default('afrux-top-posters-widget.excludePrivatePosts', true)
+        ->default('afrux-top-posters-widget.timezone', 'UTC'),
 
     (new Extend\Event())
         ->listen(Saved::class, Listener\UpdateTopPostersOnSettingsChange::class),
 
-    (new Extend\Console())
+        (new Extend\Console())
         ->command(Console\CalculateTopPostersCommand::class)
         ->schedule('afrux:top-posters:calculate', function (Event $event) {
-            $event->daily();
+            $settings = resolve(SettingsRepositoryInterface::class);
+            $timezone = $settings->get('afrux-top-posters-widget.timezone', 'UTC');
+
+            $event->daily()
+                ->timezone($timezone)
+                ->description('Calculate top posters for the current month and save to database.');
         }),
 ];

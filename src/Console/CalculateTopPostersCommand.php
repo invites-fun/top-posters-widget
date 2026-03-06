@@ -12,10 +12,20 @@
 namespace Afrux\TopPosters\Console;
 
 use Afrux\TopPosters\TopPostersCalculator;
-use Flarum\Console\AbstractCommand;
+use Illuminate\Console\Command;
 
-class CalculateTopPostersCommand extends AbstractCommand
+class CalculateTopPostersCommand extends Command
 {
+    /**
+     * @var string
+     */
+    protected $signature = 'afrux:top-posters:calculate';
+
+    /**
+     * @var string
+     */
+    protected $description = 'Calculate top posters for the current month and save to database.';
+
     /**
      * @var TopPostersCalculator
      */
@@ -27,13 +37,7 @@ class CalculateTopPostersCommand extends AbstractCommand
         $this->calculator = $calculator;
     }
 
-    protected function configure()
-    {
-        $this->setName('afrux:top-posters:calculate')
-            ->setDescription('Calculate top posters for the current month and save to database.');
-    }
-
-    protected function fire()
+    public function handle()
     {
         $this->info('Calculating top posters...');
         $this->calculator->calculate();

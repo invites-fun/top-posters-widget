@@ -12,6 +12,7 @@
 namespace Afrux\TopPosters;
 
 use Carbon\Carbon;
+use Flarum\Settings\SettingsRepositoryInterface;
 use Illuminate\Contracts\Cache\Repository as Cache;
 
 class UserRepository
@@ -21,15 +22,22 @@ class UserRepository
      */
     protected $cache;
 
-    public function __construct(Cache $cache)
+    /**
+     * @var SettingsRepositoryInterface
+     */
+    protected $settings;
+
+    public function __construct(Cache $cache, SettingsRepositoryInterface $settings)
     {
         $this->cache = $cache;
+        $this->settings = $settings;
     }
 
     public function getTopPosters(): array
     {
         return $this->cache->rememberForever('afrux-top-posters-widget.top_poster_counts', function () {
-            $currentMonthKey = Carbon::now()->format('Y-m');
+            $timezone = $this->settings->get('afrux-top-posters-widget.timezone', 'UTC');
+            $currentMonthKey = Carbon::now($timezone)->format('Y-m');
 
             $records = TopPosterHistory::query()
                 ->where('date_month', $currentMonthKey)

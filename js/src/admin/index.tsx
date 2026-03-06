@@ -15,9 +15,13 @@ app.initializers.add('afrux/top-posters-widget', () => {
       const selected = this.setting('afrux-top-posters-widget.excludeGroups', '[]');
       let selectedGroupIds = JSON.parse(selected());
       const excludePrivate = this.setting('afrux-top-posters-widget.excludePrivatePosts', true);
+      const timezone = this.setting('afrux-top-posters-widget.timezone', 'UTC');
 
       return (
         <div className="Form-group EditUserModal-groups">
+          <label>{app.translator.trans('afrux-top-posters-widget.admin.settings.timezone_label')}</label>
+          <input className="FormControl" bidi={timezone} placeholder="UTC" />
+          <hr />
           <Switch
             state={excludePrivate() == true || excludePrivate() === '1'}
             onchange={(val: boolean) => excludePrivate(val)}
