@@ -1,6 +1,6 @@
 import app from 'flarum/admin/app';
 import registerWidget from '../common/registerWidget';
-import ExtensionPage from "flarum/admin/components/ExtensionPage";
+import ExtensionPage from 'flarum/admin/components/ExtensionPage';
 import Group from 'flarum/common/models/Group';
 import Badge from 'flarum/common/components/Badge';
 import Switch from 'flarum/common/components/Switch';
@@ -9,54 +9,49 @@ app.initializers.add('afrux/top-posters-widget', () => {
   // @ts-ignore
   registerWidget(app);
 
-  app.extensionData
-    .for('afrux-top-posters-widget')
-    .registerSetting(function (this: ExtensionPage) {
-      const selected = this.setting('afrux-top-posters-widget.excludeGroups', '[]');
-      let selectedGroupIds = JSON.parse(selected());
-      const excludePrivate = this.setting('afrux-top-posters-widget.excludePrivatePosts', true);
-      const timezone = this.setting('afrux-top-posters-widget.timezone', 'UTC');
+  app.extensionData.for('afrux-top-posters-widget').registerSetting(function (this: ExtensionPage) {
+    const selected = this.setting('afrux-top-posters-widget.excludeGroups', '[]');
+    let selectedGroupIds = JSON.parse(selected());
+    const excludePrivate = this.setting('afrux-top-posters-widget.excludePrivatePosts', true);
+    const timezone = this.setting('afrux-top-posters-widget.timezone', 'UTC');
 
-      return (
-        <div className="Form-group EditUserModal-groups">
-          <label>{app.translator.trans('afrux-top-posters-widget.admin.settings.timezone_label')}</label>
-          <input className="FormControl" bidi={timezone} placeholder="UTC" />
-          <hr />
-          <Switch
-            state={excludePrivate() == true || excludePrivate() === '1'}
-            onchange={(val: boolean) => excludePrivate(val)}
-          >
-            {app.translator.trans('afrux-top-posters-widget.admin.settings.exclude_private')}
-          </Switch>
-          <hr />
-          <label>{app.translator.trans('afrux-top-posters-widget.admin.settings.info')}</label>
+    return (
+      <div className="Form-group EditUserModal-groups">
+        <label>{app.translator.trans('afrux-top-posters-widget.admin.settings.timezone_label')}</label>
+        <input className="FormControl" bidi={timezone} placeholder="UTC" />
+        <hr />
+        <Switch state={excludePrivate() == true || excludePrivate() === '1'} onchange={(val: boolean) => excludePrivate(val)}>
+          {app.translator.trans('afrux-top-posters-widget.admin.settings.exclude_private')}
+        </Switch>
+        <hr />
+        <label>{app.translator.trans('afrux-top-posters-widget.admin.settings.info')}</label>
 
-          {app.store
-            .all<Group>('groups')
-            .filter((g: Group) => g.id() !== Group.GUEST_ID)
-            .map((g: Group) => (
-              <div>
-                <label className="checkbox">
-                  <input
-                    type="checkbox"
-                    checked={selectedGroupIds.includes(g.id())}
-                    onchange={(event: Event) => {
-                      const checkbox = event.target as HTMLInputElement;
+        {app.store
+          .all<Group>('groups')
+          .filter((g: Group) => g.id() !== Group.GUEST_ID)
+          .map((g: Group) => (
+            <div>
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={selectedGroupIds.includes(g.id())}
+                  onchange={(event: Event) => {
+                    const checkbox = event.target as HTMLInputElement;
 
-                      if (checkbox.checked) {
-                        selectedGroupIds.push(g.id());
-                      } else {
-                        selectedGroupIds = selectedGroupIds.filter((id: string) => id !== g.id());
-                      }
+                    if (checkbox.checked) {
+                      selectedGroupIds.push(g.id());
+                    } else {
+                      selectedGroupIds = selectedGroupIds.filter((id: string) => id !== g.id());
+                    }
 
-                      selected(JSON.stringify(selectedGroupIds));
-                    }}
-                  />
-                  <Badge icon={g.icon() || 'fas fa-user'} color={g.color()}/> {g.namePlural()}
-                </label>
-              </div>
-            ))}
-        </div>
-      );
-    });
+                    selected(JSON.stringify(selectedGroupIds));
+                  }}
+                />
+                <Badge icon={g.icon() || 'fas fa-user'} color={g.color()} /> {g.namePlural()}
+              </label>
+            </div>
+          ))}
+      </div>
+    );
+  });
 });
