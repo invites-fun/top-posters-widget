@@ -35,15 +35,27 @@ class UserRepository
 
     public function getTopPosters(): array
     {
-        return $this->cache->rememberForever('afrux-top-posters-widget.top_poster_counts', function () {
-            $timezone = $this->settings->get('afrux-top-posters-widget.timezone', 'UTC');
-            $currentMonthKey = Carbon::now($timezone)->format('Y-m');
+        $timezone = $this->settings->get('afrux-top-posters-widget.timezone', 'UTC');
+        $now = Carbon::now($timezone);
+        $currentMonthKey = $now->format('Y-m');
+        $cacheKey = "afrux-top-posters-widget.top_poster_counts.{$currentMonthKey}";
 
+        return $this->cache->rememberForever($cacheKey, function () use ($now, $currentMonthKey) {
             $records = TopPosterHistory::query()
                 ->where('date_month', $currentMonthKey)
                 ->orderBy('post_count', 'desc')
                 ->limit(5)
                 ->get();
+
+            // Fall back to previous month if no data yet (early month transition)
+            if ($records->isEmpty()) {
+                $previousMonthKey = $now->copy()->subMonth()->format('Y-m');
+                $records = TopPosterHistory::query()
+                    ->where('date_month', $previousMonthKey)
+                    ->orderBy('post_count', 'desc')
+                    ->limit(5)
+                    ->get();
+            }
 
             $counts = [];
             foreach ($records as $record) {

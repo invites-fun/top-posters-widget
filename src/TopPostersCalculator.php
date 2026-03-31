@@ -48,8 +48,13 @@ class TopPostersCalculator
             ->where('created_at', '>=', $startOfMonth)
             ->whereNull('hidden_at')
             ->when($excludePrivate, function ($query) {
+                // Flarum native privacy check (e.g. unapproved hidden posts)
+                $query->where('is_private', false);
+
+                // Check if the forum has the fof/byobu extension installed by looking for its 'recipients' table
                 if ($query->getConnection()->getSchemaBuilder()->hasTable('recipients')) {
                     $query->whereNotIn('discussion_id', function ($subQuery) {
+                        // Laravel Query Builder natively handles the database prefix for 'from()'
                         $subQuery->select('discussion_id')
                             ->from('recipients')
                             ->whereNull('removed_at');
@@ -88,6 +93,6 @@ class TopPostersCalculator
             ->delete();
 
         // Clear the widget frontend cache so it fetches fresh data
-        $this->cache->forget('afrux-top-posters-widget.top_poster_counts');
+        $this->cache->forget("afrux-top-posters-widget.top_poster_counts.{$currentMonthKey}");
     }
 }
