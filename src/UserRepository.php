@@ -40,22 +40,12 @@ class UserRepository
         $currentMonthKey = $now->format('Y-m');
         $cacheKey = "afrux-top-posters-widget.top_poster_counts.{$currentMonthKey}";
 
-        return $this->cache->rememberForever($cacheKey, function () use ($now, $currentMonthKey) {
+        return $this->cache->rememberForever($cacheKey, function () use ($currentMonthKey) {
             $records = TopPosterHistory::query()
                 ->where('date_month', $currentMonthKey)
                 ->orderBy('post_count', 'desc')
                 ->limit(5)
                 ->get();
-
-            // Fall back to previous month if no data yet (early month transition)
-            if ($records->isEmpty()) {
-                $previousMonthKey = $now->copy()->subMonth()->format('Y-m');
-                $records = TopPosterHistory::query()
-                    ->where('date_month', $previousMonthKey)
-                    ->orderBy('post_count', 'desc')
-                    ->limit(5)
-                    ->get();
-            }
 
             $counts = [];
             foreach ($records as $record) {

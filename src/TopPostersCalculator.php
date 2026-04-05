@@ -40,12 +40,12 @@ class TopPostersCalculator
         $excludePrivate = (bool) $this->settings->get('afrux-top-posters-widget.excludePrivatePosts', true);
         $timezone = $this->settings->get('afrux-top-posters-widget.timezone', 'UTC');
 
-        $startOfMonth = Carbon::now($timezone)->startOfMonth();
+        $thirtyDaysAgo = Carbon::now($timezone)->subDays(30);
         $currentMonthKey = Carbon::now($timezone)->format('Y-m');
 
         $counts = CommentPost::query()
             ->selectRaw('user_id, count(id) as count')
-            ->where('created_at', '>=', $startOfMonth)
+            ->where('created_at', '>=', $thirtyDaysAgo)
             ->whereNull('hidden_at')
             ->when($excludePrivate, function ($query) {
                 // Flarum native privacy check (e.g. unapproved hidden posts)
