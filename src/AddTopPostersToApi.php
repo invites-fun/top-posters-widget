@@ -11,7 +11,7 @@
 
 namespace Afrux\TopPosters;
 
-use function Afrux\ForumWidgets\Helper\pretty_number_format;
+use Flarum\Api\Serializer\ForumSerializer;
 
 class AddTopPostersToApi
 {
@@ -25,9 +25,9 @@ class AddTopPostersToApi
         $this->repository = $repository;
     }
 
-    public function __invoke()
+    public function __invoke(ForumSerializer $serializer)
     {
-        $data = $this->repository->getTopPosters();
+        $data = $serializer->getActor()->can('viewForum') ? $this->repository->getTopPosters() : [];
 
         return [
             'afrux-top-posters-widget.topPosterCounts' => $data,

@@ -11,6 +11,21 @@ import extractText from 'flarum/common/utils/extractText';
 export default class TopPostersWidget extends Widget<WidgetAttrs> {
   private monthlyCounts!: Record<string, number>;
   private loadWithInitialResponse!: boolean;
+  private refreshForHalloween = (): void => {
+    this.attrs.state.users = [];
+    this.attrs.state.hasLoaded = false;
+    this.attrs.state.isLoading = true;
+    m.redraw();
+
+    app
+      .request({ method: 'GET', url: app.forum.attribute('apiUrl') })
+      .then((payload) => {
+        app.store.pushPayload(payload);
+        this.monthlyCounts = app.forum.attribute('afrux-top-posters-widget.topPosterCounts');
+        this.load();
+      })
+      .catch(() => this.setResults([]));
+  };
 
   oninit(vnode: Mithril.Vnode): void {
     super.oninit(vnode);
@@ -24,10 +39,16 @@ export default class TopPostersWidget extends Widget<WidgetAttrs> {
 
   oncreate(vnode: Mithril.Vnode): void {
     super.oncreate(vnode);
+    window.addEventListener('halloween:changed', this.refreshForHalloween);
 
     if (!this.attrs.state.hasLoaded) {
       setTimeout(this.load.bind(this), this.loadWithInitialResponse ? 0 : 800);
     }
+  }
+
+  onremove(vnode: Mithril.Vnode): void {
+    window.removeEventListener('halloween:changed', this.refreshForHalloween);
+    super.onremove(vnode);
   }
 
   className(): string {

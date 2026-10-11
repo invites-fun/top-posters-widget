@@ -54,7 +54,7 @@ class TopPosterGambitFilter extends AbstractRegexGambit implements FilterInterfa
      */
     protected function conditions(SearchState $search, array $matches, $negate)
     {
-        $this->constrain($search->getQuery(), $matches[1], $negate);
+        $this->constrain($search->getQuery(), $negate);
     }
 
     public function getFilterKey(): string

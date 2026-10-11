@@ -44,6 +44,7 @@ class UserRepository
             $records = TopPosterHistory::query()
                 ->where('date_month', $currentMonthKey)
                 ->orderBy('post_count', 'desc')
+                ->orderBy('user_id')
                 ->limit(5)
                 ->get();
 

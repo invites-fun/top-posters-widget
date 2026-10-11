@@ -4,6 +4,10 @@
 
 A [Flarum](http://flarum.org) extension. Top Posters in the past month Widget.
 
+This deployment uses the `main` branch of `invites-fun/top-posters-widget`, retaining the package name `afrux/top-posters-widget` and existing widget settings. Configure Composer to use this repository when updating; the public release does not include these changes.
+
+The widget respects the forum's existing `viewForum` permission before exposing counts or users. During Halloween, the Halloween extension supplies matching anonymous user IDs and count keys; this widget refreshes when the event starts or ends. Deploy the corresponding Halloween compatibility update together with this version.
+
 ![flarum lan_ (5)](https://user-images.githubusercontent.com/20267363/127893614-e4874003-4a2f-451d-9f84-37cebc4430ed.png)
 
 ## Installation

@@ -39,13 +39,13 @@ class LoadForumTopPostersRelationship
     public function __invoke(ShowForumController $controller, &$data, ServerRequestInterface $request)
     {
         $loadWithInitialResponse = $this->settings->get('afrux-forum-widgets-core.prefer_data_with_initial_load', false);
+        $actor = RequestUtil::getActor($request);
 
-        if (! $loadWithInitialResponse) {
+        if (! $loadWithInitialResponse || ! $actor->can('viewForum')) {
             $data['topPosters'] = [];
             return;
         }
 
-        $actor = RequestUtil::getActor($request);
         $counts = $this->repository->getTopPosters();
 
         if (empty($counts)) {
